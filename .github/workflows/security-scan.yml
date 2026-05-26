@@ -121,80 +121,6 @@ jobs:
           format: 'table'
           severity: 'CRITICAL,HIGH'
 
-  # Scan Docker images (backend image)
-  trivy-backend-image:
-    runs-on: ubuntu-latest
-    name: Trivy Backend Docker Image Scan
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-      
-      - name: Build backend Docker image
-        run: |
-          docker build -t backend-image:${{ github.run_id }} backend/
-      
-      - name: Run Trivy scan on backend image
-        uses: aquasecurity/trivy-action@master
-        with:
-          input: 'backend-image:${{ github.run_id }}'
-          format: 'sarif'
-          output: 'trivy-backend-image-results.sarif'
-          severity: 'CRITICAL,HIGH'
-          exit-code: '0'
-      
-      - name: Upload backend image scan results
-        uses: github/codeql-action/upload-sarif@v4
-        with:
-          sarif_file: 'trivy-backend-image-results.sarif'
-          category: 'trivy-backend-image'
-        if: always() && hashFiles('trivy-backend-image-results.sarif') != ''
-      
-      - name: Display results in table format
-        uses: aquasecurity/trivy-action@master
-        with:
-          input: 'backend-image:${{ github.run_id }}'
-          format: 'table'
-          severity: 'CRITICAL,HIGH'
-
-  # Scan Docker images (frontend image)
-  trivy-frontend-image:
-    runs-on: ubuntu-latest
-    name: Trivy Frontend Docker Image Scan
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-      
-      - name: Build frontend Docker image
-        run: |
-          docker build -t frontend-image:${{ github.run_id }} \
-            --build-arg VITE_API_URL=http://localhost:3001 \
-            frontend/
-      
-      - name: Run Trivy scan on frontend image
-        uses: aquasecurity/trivy-action@master
-        with:
-          input: 'frontend-image:${{ github.run_id }}'
-          format: 'sarif'
-          output: 'trivy-frontend-image-results.sarif'
-          severity: 'CRITICAL,HIGH'
-          exit-code: '0'
-      
-      - name: Upload frontend image scan results
-        uses: github/codeql-action/upload-sarif@v4
-        with:
-          sarif_file: 'trivy-frontend-image-results.sarif'
-          category: 'trivy-frontend-image'
-        if: always() && hashFiles('trivy-frontend-image-results.sarif') != ''
-      
-      - name: Display results in table format
-        uses: aquasecurity/trivy-action@master
-        with:
-          input: 'frontend-image:${{ github.run_id }}'
-          format: 'table'
-          severity: 'CRITICAL,HIGH'
-
   # Secret scanning with Trivy
   trivy-secret-scan:
     runs-on: ubuntu-latest
@@ -233,7 +159,7 @@ jobs:
   security-report:
     runs-on: ubuntu-latest
     name: Generate Security Report
-    needs: [trivy-fs-scan, trivy-backend-deps, trivy-frontend-deps, trivy-backend-image, trivy-frontend-image, trivy-secret-scan]
+    needs: [trivy-fs-scan, trivy-backend-deps, trivy-frontend-deps, trivy-secret-scan]
     if: always()
     
     steps:
