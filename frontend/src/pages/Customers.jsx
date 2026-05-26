@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { customerAPI } from '../services/api';
 import { Plus, Search, Edit2, Trash2 } from 'lucide-react';
@@ -14,11 +14,7 @@ const Customers = () => {
   const [error, setError] = useState('');
   const [page, setPage] = useState(1);
 
-  useEffect(() => {
-    loadCustomers();
-  }, [page, search]);
-
-  const loadCustomers = async () => {
+  const loadCustomers = useCallback(async () => {
     try {
       setLoading(true);
       const params = { page, limit: 20 };
@@ -31,7 +27,11 @@ const Customers = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [page, search]);
+
+  useEffect(() => {
+    loadCustomers();
+  }, [loadCustomers]);
 
   const handleSearch = (e) => {
     e.preventDefault();

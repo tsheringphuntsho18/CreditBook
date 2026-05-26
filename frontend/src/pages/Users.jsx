@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { userAPI } from '../services/api';
 import { Plus, Edit2, Trash2 } from 'lucide-react';
 
@@ -10,11 +10,7 @@ const Users = () => {
   const [formData, setFormData] = useState({ email: '', password: '', name: '' });
   const [error, setError] = useState('');
 
-  useEffect(() => {
-    loadUsers();
-  }, []);
-
-  const loadUsers = async () => {
+  const loadUsers = useCallback(async () => {
     try {
       const data = await userAPI.getAll();
       setUsers(data);
@@ -23,7 +19,11 @@ const Users = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    loadUsers();
+  }, [loadUsers]);
 
   const openModal = (user = null) => {
     if (user) {

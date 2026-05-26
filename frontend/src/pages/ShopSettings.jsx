@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { shopAPI } from '../services/api';
 import { Store } from 'lucide-react';
@@ -11,13 +11,7 @@ const ShopSettings = () => {
   const [success, setSuccess] = useState('');
   const [error, setError] = useState('');
 
-  useEffect(() => {
-    if (shop?.id) {
-      loadShop();
-    }
-  }, [shop]);
-
-  const loadShop = async () => {
+  const loadShop = useCallback(async () => {
     try {
       const data = await shopAPI.getOne(shop.id);
       setFormData({
@@ -30,7 +24,13 @@ const ShopSettings = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [shop.id]);
+
+  useEffect(() => {
+    if (shop?.id) {
+      loadShop();
+    }
+  }, [shop, loadShop]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();

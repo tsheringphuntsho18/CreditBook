@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { customerAPI, transactionAPI } from '../services/api';
 import { ArrowLeft, Plus, Minus, Receipt } from 'lucide-react';
@@ -11,11 +11,7 @@ const CustomerDetail = () => {
   const [formData, setFormData] = useState({ type: 'credit', amount: '', description: '', reference_number: '' });
   const [error, setError] = useState('');
 
-  useEffect(() => {
-    loadCustomer();
-  }, [id]);
-
-  const loadCustomer = async () => {
+  const loadCustomer = useCallback(async () => {
     try {
       const data = await customerAPI.getOne(id);
       setCustomer(data);
@@ -24,7 +20,11 @@ const CustomerDetail = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id]);
+
+  useEffect(() => {
+    loadCustomer();
+  }, [loadCustomer]);
 
   const handleTransaction = async (e) => {
     e.preventDefault();

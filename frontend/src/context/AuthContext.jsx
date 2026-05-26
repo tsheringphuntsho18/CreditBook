@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import { createContext, useContext, useState, useEffect } from 'react';
 import { authAPI } from '../services/api';
 
@@ -15,11 +16,12 @@ export const AuthProvider = ({ children }) => {
         .then((data) => {
           setUser(data.user);
           setShop(data.shop);
+          setLoading(false);
         })
         .catch(() => {
           localStorage.removeItem('token');
-        })
-        .finally(() => setLoading(false));
+          setLoading(false);
+        });
     } else {
       setLoading(false);
     }

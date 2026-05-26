@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { transactionAPI, customerAPI } from '../services/api';
 import { Plus, Filter, Receipt } from 'lucide-react';
 
@@ -12,24 +12,16 @@ const Transactions = () => {
   const [formData, setFormData] = useState({ customer_id: '', type: 'credit', amount: '', description: '', reference_number: '' });
   const [error, setError] = useState('');
 
-  useEffect(() => {
-    loadCustomers();
-  }, []);
-
-  useEffect(() => {
-    loadTransactions();
-  }, [filters]);
-
-  const loadCustomers = async () => {
+  const loadCustomers = useCallback(async () => {
     try {
       const result = await customerAPI.getAll({ limit: 100 });
       setCustomers(result.customers);
     } catch (err) {
       console.error('Failed to load customers:', err);
     }
-  };
+  }, []);
 
-  const loadTransactions = async () => {
+  const loadTransactions = useCallback(async () => {
     try {
       setLoading(true);
       const params = { ...filters };
@@ -42,7 +34,15 @@ const Transactions = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filters]);
+
+  useEffect(() => {
+    loadCustomers();
+  }, [loadCustomers]);
+
+  useEffect(() => {
+    loadTransactions();
+  }, [loadTransactions]);
 
   const handleFilterChange = (key, value) => {
     setFilters({ ...filters, [key]: value, page: 1 });
