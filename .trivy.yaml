@@ -1,0 +1,66 @@
+# Trivy Configuration for CreditBook
+# This configuration file defines security scanning policies and settings
+
+# Global settings
+severity:
+  - CRITICAL
+  - HIGH
+  - MEDIUM
+
+# Skip specific vulnerabilities (if any false positives are found)
+# Format: CVE-XXXX-XXXXX
+skip-vulnerabilities: []
+
+# Ignore vulnerabilities by severity
+ignore-unfixed: false
+
+# Scanners to use
+scanners:
+  - vuln        # Vulnerability scanning
+  - config      # Configuration scanning
+  - secret      # Secret detection
+  - license     # License scanning
+
+# Vulnerability database settings
+db:
+  # Automatically download and update DB on startup
+  repository: ghcr.io/aquasecurity/trivy-db
+
+# Cache settings
+cache:
+  dir: /tmp/trivy-cache
+
+# Exit code configuration
+# Set to 0 to not fail CI/CD on vulnerabilities
+exit-code: 0
+
+# Format settings
+format: table
+
+# Logging
+log-level: info
+
+# File type detection
+file-patterns: []
+
+# Skip files/directories
+skip-dirs:
+  - node_modules
+  - dist
+  - build
+  - coverage
+  - '.git'
+  - '.github'
+  - '.vscode'
+
+# Skip files
+skip-files: []
+
+# Offline mode (set to true to skip DB update)
+offline-scan: false
+
+# Custom resource limits
+timeout: 5m0s
+
+# Parallel scan settings
+parallel: 5

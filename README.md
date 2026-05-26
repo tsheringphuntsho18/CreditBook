@@ -37,6 +37,7 @@ CreditBook is an intelligent credit management platform designed for small busin
 ### DevOps & CI/CD
 - **Automated Testing** - Jest (backend) and Vitest (frontend)
 - **Code Quality** - ESLint for both frontend and backend
+- **Security Scanning** - Trivy for vulnerability detection
 - **Docker Support** - Containerized deployment
 - **GitHub Actions** - Automated testing and deployment
 - **Code Coverage** - Test coverage reporting
@@ -265,6 +266,42 @@ The application is deployed on Render using Docker containers with automatic dep
 4. Render pulls latest image
 5. Nginx container restarts with built frontend assets
 6. Frontend accessible at production URL
+
+## Security Scanning with Trivy
+
+CreditBook implements automated security scanning using **Trivy**, an industry-leading vulnerability scanner.
+
+### What Gets Scanned
+
+- **Filesystem**: Detects vulnerabilities in dependencies and configurations
+- **Dependencies**: npm packages (backend & frontend)
+- **Docker Images**: Scans both backend and frontend container images
+- **Secrets**: Detects exposed API keys, tokens, and credentials
+- **Infrastructure**: Configuration misconfigurations
+
+### Scan Frequency
+
+- **On Every Commit**: Push to `main` or `develop` branches
+- **On Every Pull Request**: Automated security checks before merge
+- **Daily Schedule**: 2 AM UTC for comprehensive scanning
+
+### Running Local Security Scans
+
+```bash
+# Comprehensive scan (all components)
+chmod +x scripts/security-scan.sh
+./scripts/security-scan.sh
+
+# Quick scan (filesystem)
+trivy fs . --config .trivy.yaml
+
+# Scan Docker images
+chmod +x scripts/scan-docker-images.sh
+./scripts/scan-docker-images.sh
+
+# Scan for secrets
+trivy secret .
+```
 
 ## Project Structure
 

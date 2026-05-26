@@ -1,0 +1,315 @@
+name: Security Scanning with Trivy
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  schedule:
+    # Run security scans daily at 2 AM UTC
+    - cron: '0 2 * * *'
+
+permissions:
+  contents: read
+  security-events: write
+
+env:
+  REGISTRY: ghcr.io
+  BACKEND_IMAGE_NAME: ${{ github.repository }}/creditbook-backend
+  FRONTEND_IMAGE_NAME: ${{ github.repository }}/creditbook-frontend
+
+jobs:
+  # Scan filesystem for vulnerabilities
+  trivy-fs-scan:
+    runs-on: ubuntu-latest
+    name: Trivy Filesystem Scan
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Run Trivy vulnerability filesystem scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-fs-results.sarif'
+          severity: 'CRITICAL,HIGH,MEDIUM'
+          exit-code: '0'
+      
+      - name: Upload Trivy results to GitHub Security
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: 'trivy-fs-results.sarif'
+          category: 'trivy-fs-scan'
+        if: always()
+      
+      - name: Display Trivy results
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'table'
+          severity: 'CRITICAL,HIGH,MEDIUM'
+
+  # Scan dependencies (backend)
+  trivy-backend-deps:
+    runs-on: ubuntu-latest
+    name: Trivy Backend Dependencies Scan
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Run Trivy vulnerability scan on backend dependencies
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: 'backend'
+          format: 'sarif'
+          output: 'trivy-backend-results.sarif'
+          severity: 'CRITICAL,HIGH'
+          exit-code: '0'
+      
+      - name: Upload backend scan results
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: 'trivy-backend-results.sarif'
+          category: 'trivy-backend-deps'
+        if: always()
+      
+      - name: Display results in table format
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: 'backend'
+          format: 'table'
+          severity: 'CRITICAL,HIGH'
+
+  # Scan dependencies (frontend)
+  trivy-frontend-deps:
+    runs-on: ubuntu-latest
+    name: Trivy Frontend Dependencies Scan
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Run Trivy vulnerability scan on frontend dependencies
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: 'frontend'
+          format: 'sarif'
+          output: 'trivy-frontend-results.sarif'
+          severity: 'CRITICAL,HIGH'
+          exit-code: '0'
+      
+      - name: Upload frontend scan results
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: 'trivy-frontend-results.sarif'
+          category: 'trivy-frontend-deps'
+        if: always()
+      
+      - name: Display results in table format
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: 'frontend'
+          format: 'table'
+          severity: 'CRITICAL,HIGH'
+
+  # Scan Docker images (backend image)
+  trivy-backend-image:
+    runs-on: ubuntu-latest
+    name: Trivy Backend Docker Image Scan
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      
+      - name: Build backend image for scanning
+        uses: docker/build-push-action@v5
+        with:
+          context: backend
+          push: false
+          load: true
+          tags: backend-image:${{ github.run_id }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      
+      - name: Run Trivy scan on backend image
+        uses: aquasecurity/trivy-action@master
+        with:
+          input: 'backend-image:${{ github.run_id }}'
+          format: 'sarif'
+          output: 'trivy-backend-image-results.sarif'
+          severity: 'CRITICAL,HIGH'
+          exit-code: '0'
+      
+      - name: Upload backend image scan results
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: 'trivy-backend-image-results.sarif'
+          category: 'trivy-backend-image'
+        if: always()
+      
+      - name: Display results in table format
+        uses: aquasecurity/trivy-action@master
+        with:
+          input: 'backend-image:${{ github.run_id }}'
+          format: 'table'
+          severity: 'CRITICAL,HIGH'
+
+  # Scan Docker images (frontend image)
+  trivy-frontend-image:
+    runs-on: ubuntu-latest
+    name: Trivy Frontend Docker Image Scan
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      
+      - name: Build frontend image for scanning
+        uses: docker/build-push-action@v5
+        with:
+          context: frontend
+          push: false
+          load: true
+          tags: frontend-image:${{ github.run_id }}
+          build-args: |
+            VITE_API_URL=http://localhost:3001
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      
+      - name: Run Trivy scan on frontend image
+        uses: aquasecurity/trivy-action@master
+        with:
+          input: 'frontend-image:${{ github.run_id }}'
+          format: 'sarif'
+          output: 'trivy-frontend-image-results.sarif'
+          severity: 'CRITICAL,HIGH'
+          exit-code: '0'
+      
+      - name: Upload frontend image scan results
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: 'trivy-frontend-image-results.sarif'
+          category: 'trivy-frontend-image'
+        if: always()
+      
+      - name: Display results in table format
+        uses: aquasecurity/trivy-action@master
+        with:
+          input: 'frontend-image:${{ github.run_id }}'
+          format: 'table'
+          severity: 'CRITICAL,HIGH'
+
+  # Secret scanning with Trivy
+  trivy-secret-scan:
+    runs-on: ubuntu-latest
+    name: Trivy Secret Scanning
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Run Trivy secret scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'secret'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-secrets-results.sarif'
+          exit-code: '0'
+      
+      - name: Upload secret scan results
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: 'trivy-secrets-results.sarif'
+          category: 'trivy-secrets'
+        if: always()
+      
+      - name: Display secret scan results
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'secret'
+          scan-ref: '.'
+          format: 'table'
+
+  # Generate comprehensive report
+  security-report:
+    runs-on: ubuntu-latest
+    name: Generate Security Report
+    needs: [trivy-fs-scan, trivy-backend-deps, trivy-frontend-deps, trivy-backend-image, trivy-frontend-image, trivy-secret-scan]
+    if: always()
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Run all Trivy scans for reporting
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'json'
+          output: 'trivy-report.json'
+      
+      - name: Upload security report as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: trivy-security-report
+          path: trivy-report.json
+          retention-days: 30
+        if: always()
+      
+      - name: Comment on PR with results
+        if: github.event_name == 'pull_request' && always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const report = JSON.parse(fs.readFileSync('trivy-report.json', 'utf8'));
+            
+            let criticalCount = 0;
+            let highCount = 0;
+            
+            if (report.Results) {
+              report.Results.forEach(result => {
+                if (result.Misconfigurations) {
+                  result.Misconfigurations.forEach(misconfig => {
+                    if (misconfig.Severity === 'CRITICAL') criticalCount++;
+                    if (misconfig.Severity === 'HIGH') highCount++;
+                  });
+                }
+                if (result.Vulnerabilities) {
+                  result.Vulnerabilities.forEach(vuln => {
+                    if (vuln.Severity === 'CRITICAL') criticalCount++;
+                    if (vuln.Severity === 'HIGH') highCount++;
+                  });
+                }
+              });
+            }
+            
+            const message = `## 🔒 Security Scan Results
+            
+            - 🔴 Critical: ${criticalCount}
+            - 🟠 High: ${highCount}
+            
+            [View detailed report](https://github.com/${{ github.repository }}/security/code-scanning)`;
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: message
+            });
