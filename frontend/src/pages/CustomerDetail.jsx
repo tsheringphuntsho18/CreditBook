@@ -82,7 +82,7 @@ const CustomerDetail = () => {
               <div style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 4 }}>Current Balance</div>
               <div style={{ fontSize: 32, fontWeight: 700, fontFamily: 'JetBrains Mono' }}
                 className={parseFloat(customer.balance) > 0 ? 'negative' : 'positive'}>
-                Rs. {parseFloat(customer.balance).toFixed(2)}
+                Nu. {parseFloat(customer.balance).toFixed(2)}
               </div>
             </div>
           </div>
@@ -127,7 +127,7 @@ const CustomerDetail = () => {
                       </span>
                     </td>
                     <td data-label="Amount" className={`balance ${tx.type === 'credit' ? 'negative' : 'positive'}`}>
-                      {tx.type === 'credit' ? '-' : '+'} Rs. {parseFloat(tx.amount).toFixed(2)}
+                      {tx.type === 'credit' ? '-' : '+'} Nu. {parseFloat(tx.amount).toFixed(2)}
                     </td>
                     <td data-label="Description">{tx.description || '-'}</td>
                     <td data-label="Receipt">

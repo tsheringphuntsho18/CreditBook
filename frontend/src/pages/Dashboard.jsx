@@ -48,14 +48,14 @@ const Dashboard = () => {
 
         <div className="stat-card">
           <div className="label">Outstanding Credit</div>
-          <div className="value negative">Rs. {summary.total_outstanding.toFixed(2)}</div>
+          <div className="value negative">Nu. {summary.total_outstanding.toFixed(2)}</div>
         </div>
 
         <div className="stat-card">
           <div className="label">Today's Credits</div>
           <div className="value" style={{ color: 'var(--danger)' }}>
             <Plus size={20} style={{ display: 'inline', marginRight: 4 }} />
-            Rs. {summary.today_credits.toFixed(2)}
+            Nu. {summary.today_credits.toFixed(2)}
           </div>
         </div>
 
@@ -63,7 +63,7 @@ const Dashboard = () => {
           <div className="label">Today's Payments</div>
           <div className="value positive">
             <Minus size={20} style={{ display: 'inline', marginRight: 4 }} />
-            Rs. {summary.today_payments.toFixed(2)}
+            Nu. {summary.today_payments.toFixed(2)}
           </div>
         </div>
       </div>
@@ -97,7 +97,7 @@ const Dashboard = () => {
                         </span>
                       </td>
                       <td data-label="Amount" className={`balance ${tx.type === 'credit' ? 'negative' : 'positive'}`}>
-                        {tx.type === 'credit' ? '-' : '+'} Rs. {parseFloat(tx.amount).toFixed(2)}
+                        {tx.type === 'credit' ? '-' : '+'} Nu. {parseFloat(tx.amount).toFixed(2)}
                       </td>
                       <td data-label="Date">{new Date(tx.created_at).toLocaleDateString()}</td>
                     </tr>

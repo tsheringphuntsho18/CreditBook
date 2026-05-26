@@ -139,7 +139,7 @@ const Transactions = () => {
                       </span>
                     </td>
                     <td data-label="Amount" className={`balance ${tx.type === 'credit' ? 'negative' : 'positive'}`}>
-                      {tx.type === 'credit' ? '-' : '+'} Rs. {parseFloat(tx.amount).toFixed(2)}
+                      {tx.type === 'credit' ? '-' : '+'} Nu. {parseFloat(tx.amount).toFixed(2)}
                     </td>
                     <td data-label="Description">{tx.description || '-'}</td>
                     <td data-label="Created By">{tx.user_name || '-'}</td>

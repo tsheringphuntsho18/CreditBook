@@ -114,13 +114,13 @@ const generateReceipt = async (req, res, next) => {
 
     doc.text('Amount:', 50, tableTop + 20);
     const amountText = transaction.type === 'credit'
-      ? `- Rs. ${parseFloat(transaction.amount).toFixed(2)}`
-      : `+ Rs. ${parseFloat(transaction.amount).toFixed(2)}`;
+      ? `- Nu. ${parseFloat(transaction.amount).toFixed(2)}`
+      : `+ Nu. ${parseFloat(transaction.amount).toFixed(2)}`;
     doc.font('Helvetica-Bold').text(amountText, 150, tableTop + 20);
 
     const customer = await db('customers').where({ id: transaction.customer_id }).first();
     doc.text('Balance:', 50, tableTop + 40);
-    doc.font('Helvetica-Bold').text(`Rs. ${parseFloat(customer.balance).toFixed(2)}`, 150, tableTop + 40);
+    doc.font('Helvetica-Bold').text(`Nu. ${parseFloat(customer.balance).toFixed(2)}`, 150, tableTop + 40);
 
     doc.moveDown(3);
     doc.font('Helvetica').fontSize(10).text('Thank you for your business!', { align: 'center' });

@@ -130,7 +130,7 @@ const Customers = () => {
                     </td>
                     <td data-label="Phone">{customer.phone || '-'}</td>
                     <td data-label="Balance" className={`balance ${parseFloat(customer.balance) > 0 ? 'negative' : 'positive'}`}>
-                      Rs. {parseFloat(customer.balance).toFixed(2)}
+                      Nu. {parseFloat(customer.balance).toFixed(2)}
                     </td>
                     <td data-label="Actions">
                       <div className="actions">
