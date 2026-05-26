@@ -39,11 +39,11 @@ jobs:
           exit-code: '0'
       
       - name: Upload Trivy results to GitHub Security
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4
         with:
           sarif_file: 'trivy-fs-results.sarif'
           category: 'trivy-fs-scan'
-        if: always()
+        if: always() && hashFiles('trivy-fs-results.sarif') != ''
       
       - name: Display Trivy results
         uses: aquasecurity/trivy-action@master
@@ -73,11 +73,11 @@ jobs:
           exit-code: '0'
       
       - name: Upload backend scan results
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4
         with:
           sarif_file: 'trivy-backend-results.sarif'
           category: 'trivy-backend-deps'
-        if: always()
+        if: always() && hashFiles('trivy-backend-results.sarif') != ''
       
       - name: Display results in table format
         uses: aquasecurity/trivy-action@master
@@ -107,11 +107,11 @@ jobs:
           exit-code: '0'
       
       - name: Upload frontend scan results
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4
         with:
           sarif_file: 'trivy-frontend-results.sarif'
           category: 'trivy-frontend-deps'
-        if: always()
+        if: always() && hashFiles('trivy-frontend-results.sarif') != ''
       
       - name: Display results in table format
         uses: aquasecurity/trivy-action@master
@@ -153,11 +153,11 @@ jobs:
           exit-code: '0'
       
       - name: Upload backend image scan results
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4
         with:
           sarif_file: 'trivy-backend-image-results.sarif'
           category: 'trivy-backend-image'
-        if: always()
+        if: always() && hashFiles('trivy-backend-image-results.sarif') != ''
       
       - name: Display results in table format
         uses: aquasecurity/trivy-action@master
@@ -200,11 +200,11 @@ jobs:
           exit-code: '0'
       
       - name: Upload frontend image scan results
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4
         with:
           sarif_file: 'trivy-frontend-image-results.sarif'
           category: 'trivy-frontend-image'
-        if: always()
+        if: always() && hashFiles('trivy-frontend-image-results.sarif') != ''
       
       - name: Display results in table format
         uses: aquasecurity/trivy-action@master
@@ -230,13 +230,14 @@ jobs:
           format: 'sarif'
           output: 'trivy-secrets-results.sarif'
           exit-code: '0'
+        continue-on-error: true
       
       - name: Upload secret scan results
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4
         with:
           sarif_file: 'trivy-secrets-results.sarif'
           category: 'trivy-secrets'
-        if: always()
+        if: always() && hashFiles('trivy-secrets-results.sarif') != ''
       
       - name: Display secret scan results
         uses: aquasecurity/trivy-action@master
@@ -244,6 +245,7 @@ jobs:
           scan-type: 'secret'
           scan-ref: '.'
           format: 'table'
+        continue-on-error: true
 
   # Generate comprehensive report
   security-report:
