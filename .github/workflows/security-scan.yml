@@ -130,18 +130,9 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
       
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-      
-      - name: Build backend image for scanning
-        uses: docker/build-push-action@v5
-        with:
-          context: backend
-          push: false
-          load: true
-          tags: backend-image:${{ github.run_id }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+      - name: Build backend Docker image
+        run: |
+          docker build -t backend-image:${{ github.run_id }} backend/
       
       - name: Run Trivy scan on backend image
         uses: aquasecurity/trivy-action@master
@@ -175,20 +166,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
       
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-      
-      - name: Build frontend image for scanning
-        uses: docker/build-push-action@v5
-        with:
-          context: frontend
-          push: false
-          load: true
-          tags: frontend-image:${{ github.run_id }}
-          build-args: |
-            VITE_API_URL=http://localhost:3001
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+      - name: Build frontend Docker image
+        run: |
+          docker build -t frontend-image:${{ github.run_id }} \
+            --build-arg VITE_API_URL=http://localhost:3001 \
+            frontend/
       
       - name: Run Trivy scan on frontend image
         uses: aquasecurity/trivy-action@master
