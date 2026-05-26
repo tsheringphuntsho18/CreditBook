@@ -4,10 +4,15 @@ on:
   push:
     branches:
       - main
+  workflow_run:
+    workflows: [ "tests" ]
+    types: [ completed ]
+    branches: [ main ]
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    if: github.event.workflow_run.conclusion == 'success' || github.event_name == 'push'
     
     steps:
       - name: Checkout code
@@ -28,3 +33,10 @@ jobs:
           curl -X POST $RENDER_DEPLOY_HOOK_FRONTEND
           
           echo "Deployments triggered successfully!"
+      
+      - name: Deployment status
+        if: always()
+        run: |
+          echo "✅ Deployment to Render completed"
+          echo "Repository: ${{ github.repository }}"
+          echo "Branch: ${{ github.ref }}"
