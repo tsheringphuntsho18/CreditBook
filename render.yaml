@@ -1,0 +1,32 @@
+services:
+  # Backend Service
+  - type: web
+    name: cicd-creditbook-backend
+    runtime: docker
+    dockerfilePath: backend/Dockerfile
+    region: oregon
+    plan: free
+    
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: JWT_EXPIRES_IN
+        value: 7d
+      - key: PORT
+        value: "3001"
+
+  # Frontend Service
+  - type: web
+    name: cicd-creditbook-frontend
+    runtime: docker
+    dockerfilePath: frontend/Dockerfile
+    region: oregon
+    plan: free
+
+    envVars:
+      # Build argument - use your actual backend URL
+      - key: VITE_API_URL
+        value: https://cicd-creditbook-backend.onrender.com
+    
+    # Deployment via GitHub Actions (not auto-deploy)
+    # See .github/workflows/deploy.yml
