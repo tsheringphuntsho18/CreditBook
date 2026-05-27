@@ -1,5 +1,3 @@
-# Frontend Dockerfile (multi-stage) 
-
 # Stage 1 – Build the React/Vite app
 FROM node:20-alpine AS builder
 
