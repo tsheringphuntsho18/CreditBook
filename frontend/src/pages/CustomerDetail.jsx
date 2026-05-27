@@ -155,7 +155,7 @@ const CustomerDetail = () => {
               <div className="modal-body">
                 {error && <div className="error">{error}</div>}
                 <div className="form-group">
-                  <label>Amount (Rs.) *</label>
+                  <label>Amount (Nu.) *</label>
                   <input
                     type="number"
                     step="0.01"
