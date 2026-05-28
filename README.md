@@ -352,24 +352,6 @@ CreditBook implements automated security scanning using **Trivy**, an industry-l
 - **On Every Pull Request**: Automated security checks before merge
 - **Daily Schedule**: 2 AM UTC for comprehensive scanning
 
-### Running Local Security Scans
-
-```bash
-# Comprehensive scan (all components)
-chmod +x scripts/security-scan.sh
-./scripts/security-scan.sh
-
-# Quick scan (filesystem)
-trivy fs . --config .trivy.yaml
-
-# Scan Docker images
-chmod +x scripts/scan-docker-images.sh
-./scripts/scan-docker-images.sh
-
-# Scan for secrets
-trivy secret .
-```
-
 ## Project Structure
 
 ```
