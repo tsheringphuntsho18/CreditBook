@@ -401,6 +401,7 @@ trivy secret .
 ├── .github/
 │   ├── workflows/
 │   │   ├── test.yml          # Test and build workflow
+│   │   ├── security-scan.yml # Security scanning workflow
 │   │   └── deploy.yml        # Deployment workflow
 │   ├── GITHUB_SECRETS.md     # Secrets setup guide
 │   ├── SUPABASE_INTEGRATION.md
