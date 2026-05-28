@@ -78,86 +78,153 @@ CreditBook is an intelligent credit management platform designed for small busin
 - **CI/CD**: GitHub Actions
 - **Deployment**: Render
 - **Container Registry**: GitHub Container Registry
-- **Code Analysis**: SonarCloud (optional)
+- **Code Analysis**: ESlint
 
 
 
 ## CI/CD Pipeline
 
 ### Overview
-We have implemented a comprehensive CI/CD pipeline that automatically tests, builds, and deploys your application on every code commit.
+We have implemented a comprehensive CI/CD pipeline that automatically tests, builds, scans for security vulnerabilities, and deploys your application on every code commit.
 
 ### Complete Automated Workflow
 
 ```
-Developer Pushes Code
+Developer Pushes Code to main/develop
     ↓
-GitHub Detects Push
+GitHub Detects Push/PR
     ↓
-┌─────────────────────────────────────────┐
-│  TEST WORKFLOW (test.yml)               │
-│  Runs in parallel:                      │
-├─────────────────────────────────────────┤
-│ Backend Tests Job (5-7 min)             │
-│  ├─ Setup Node.js 18                    │
-│  ├─ Install dependencies                │
-│  ├─ Connect to Supabase test DB         │
-│  ├─ Run Jest unit tests                 │
-│  ├─ Run ESLint linting                  │
-│  ├─ Generate coverage report            │
-│  └─ Upload to Codecov                   │
-├─────────────────────────────────────────┤
-│ Frontend Tests Job (4-6 min)            │
-│  ├─ Setup Node.js 18                    │
-│  ├─ Install dependencies                │
-│  ├─ Run ESLint linting                  │
-│  ├─ Build with Vite                     │
-│  ├─ Run Vitest unit tests               │
-│  └─ Upload build artifacts              │
-├─────────────────────────────────────────┤
-│ Code Quality Job (2-3 min)              │
-│  ├─ SonarCloud analysis                 │
-│  └─ Code metrics                        │
-├─────────────────────────────────────────┤
-│ Docker Build Job (8-10 min)             │
-│  ├─ Setup Docker Buildx                 │
-│  ├─ Build backend image                 │
-│  ├─ Build frontend image                │
-│  └─ Push to GitHub Container Registry   │
-└─────────────────────────────────────────┘
+┌──────────────────────────────────────────────┐
+│  TEST WORKFLOW (test.yml)                    │
+│  Runs in parallel:                           │
+├──────────────────────────────────────────────┤
+│ Backend Tests Job (5-7 min)                  │
+│  ├─ Setup Node.js 20                         │
+│  ├─ Install dependencies                     │
+│  ├─ Connect to Supabase test DB              │
+│  ├─ Run Jest unit tests                      │
+│  ├─ Run ESLint linting                       │
+│  ├─ Generate coverage report                 │
+│  └─ Upload to Codecov                        │
+├──────────────────────────────────────────────┤
+│ Frontend Tests Job (4-6 min)                 │
+│  ├─ Setup Node.js 20                         │
+│  ├─ Install dependencies                     │
+│  ├─ Run ESLint linting                       │
+│  ├─ Build with Vite                          │
+│  ├─ Run Vitest unit tests                    │
+│  └─ Upload build artifacts                   │
+├──────────────────────────────────────────────┤
+│ Docker Build Job (8-10 min)                  │
+│  ├─ Setup Docker Buildx                      │
+│  ├─ Build & push backend image               │
+│  ├─ Build & push frontend image              │
+│  └─ Push to GitHub Container Registry        │
+└──────────────────────────────────────────────┘
     ↓
     All Tests Pass? ✓
     ↓
-┌─────────────────────────────────────────┐
-│  DEPLOY WORKFLOW (deploy.yml)           │
-│  Triggered after test.yml success       │
-├─────────────────────────────────────────┤
-│ 1. Deploy Backend                       │
-│    └─ Trigger Render webhook            │
-│       ├─ Render pulls latest image      │
-│       ├─ Stops old container            │
-│       ├─ Starts new container           │
-│       └─ Routes traffic                 │
-│                                         │
-│ 2. Wait 30 seconds                      │
-│                                         │
-│ 3. Deploy Frontend                      │
-│    └─ Trigger Render webhook            │
-│       ├─ Render pulls latest image      │
-│       ├─ Stops old container            │
-│       ├─ Starts new Nginx container     │
-│       └─ Routes traffic                 │
-└─────────────────────────────────────────┘
+    (Runs on: push to main, pull_request, daily at 2 AM UTC)
+    ↓
+┌──────────────────────────────────────────────┐
+│  SECURITY SCANNING WORKFLOW (security-       │
+│  scan.yml) Runs in parallel:                 │
+├──────────────────────────────────────────────┤
+│ Trivy Filesystem Scan Job                    │
+│  ├─ Scan entire codebase                     │
+│  ├─ Detect vulnerabilities                   │
+│  ├─ Format: SARIF                            │
+│  ├─ Severity: CRITICAL, HIGH, MEDIUM         │
+│  └─ Upload to GitHub Security tab            │
+├──────────────────────────────────────────────┤
+│ Trivy Backend Dependencies Scan Job          │
+│  ├─ Scan backend directory                   │
+│  ├─ npm packages analysis                    │
+│  ├─ Severity: CRITICAL, HIGH                 │
+│  └─ Upload results to GitHub                 │
+├──────────────────────────────────────────────┤
+│ Trivy Frontend Dependencies Scan Job         │
+│  ├─ Scan frontend directory                  │
+│  ├─ npm packages analysis                    │
+│  ├─ Severity: CRITICAL, HIGH                 │
+│  └─ Upload results to GitHub                 │
+├──────────────────────────────────────────────┤
+│ Trivy Secret Scanning Job                    │
+│  ├─ Detect exposed API keys                  │
+│  ├─ Find hardcoded credentials               │
+│  ├─ Scan entire repository                   │
+│  └─ Upload results to GitHub                 │
+├──────────────────────────────────────────────┤
+│ Security Report Generation Job               │
+│  ├─ Run comprehensive Trivy scan             │
+│  ├─ Generate JSON report                     │
+│  ├─ Comment on PR with summary               │
+│  └─ Upload report as artifact                │
+└──────────────────────────────────────────────┘
+    ↓
+    Security Scan Results Available? ✓
+    ↓ (Only if tests and security passes)
+┌──────────────────────────────────────────────┐
+│  DEPLOY WORKFLOW (deploy.yml)                │
+│  Triggered after test.yml success            │
+├──────────────────────────────────────────────┤
+│ 1. Deploy Backend                            │
+│    ├─ Trigger Render webhook                 │
+│    ├─ Render pulls latest image              │
+│    ├─ Stops old container                    │
+│    ├─ Starts new container                   │
+│    └─ Routes traffic                         │
+│                                              │
+│ 2. Wait 30 seconds                           │
+│                                              │
+│ 3. Deploy Frontend                           │
+│    ├─ Trigger Render webhook                 │
+│    ├─ Render pulls latest image              │
+│    ├─ Stops old Nginx container              │
+│    ├─ Starts new Nginx container             │
+│    └─ Routes traffic                         │
+└──────────────────────────────────────────────┘
     ↓
 Production Updated Successfully! ✓
 
-If Any Test Fails:
+Pipeline Triggers:
+├─ On Push to main/develop: Runs test.yml → security-scan.yml → deploy.yml
+├─ On Pull Request to main/develop: Runs test.yml → security-scan.yml (no deploy)
+├─ Daily Schedule (2 AM UTC): Runs security-scan.yml
+└─ Manual Workflow: Can be triggered manually from GitHub
+
+If Any Step Fails:
     ↓
 Workflow Stops ✗
-    └─ Error notification in GitHub
-    └─ PR marked as failing
-    └─ Deployment blocked
+    ├─ Error notification in GitHub
+    ├─ PR marked as failing (if applicable)
+    ├─ Deployment blocked
+    └─ Team notified via GitHub
 ```
+
+### Workflow Files
+
+| Workflow | File | Trigger | Purpose |
+|----------|------|---------|---------|
+| Tests | `test.yml` | Push/PR to main/develop | Run unit tests, linting, build Docker images |
+| Security | `security-scan.yml` | Push/PR to main/develop, Daily at 2 AM UTC | Trivy vulnerability and secret scanning |
+| Deploy | `deploy.yml` | After test.yml succeeds | Trigger Render deployments |
+
+### Security Scanning Details
+
+The security scanning workflow (`security-scan.yml`) includes:
+
+1. **Filesystem Scan** - Scans entire codebase for vulnerabilities
+2. **Backend Dependencies Scan** - Analyzes npm packages in backend
+3. **Frontend Dependencies Scan** - Analyzes npm packages in frontend
+4. **Secret Scanning** - Detects exposed API keys, credentials, and secrets
+5. **Security Report** - Generates comprehensive JSON report and comments on PRs
+
+All security findings are:
+- Uploaded to GitHub Security tab for visibility
+- Available in GitHub Code Scanning section
+- Included in PR comments with severity summary
+- Stored as artifacts for historical tracking
 
 **What Render Does:**
 1. **Receives webhook** from GitHub Actions
